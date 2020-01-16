@@ -6,7 +6,7 @@ myclient,mydb,col = None,None,None
 def mongoConnect():
     myclient = pymongo.MongoClient('mongodb://localhost:27017/')
     mydb = myclient['yymo']
-    col = mydb["numwcoll"]
+    col = mydb["traincoll"]
     return col
 def testtime(qlist, num,k):
     itemlist = genRandom.getitemlist()
@@ -73,11 +73,36 @@ def testout(querydata, queryN, sparselist,flied,k):
     col.drop_index(flied)
     print(k, ",")
     print(timelist)
-
+def testquery(qlist):
+    itemlist = genRandom.getitemlist()
+    begin = time.perf_counter()
+    for i in range(8):
+        for j in range(10000):
+            print(j)
+            if qlist[i][j+10000]:
+                partfilter = {
+                    itemlist[i]: {
+                        "$gte": qlist[i][j],
+                        "$lte": qlist[i][j+10000],
+                    }
+                }
+                djson = col.find(partfilter)
+            else:
+                d = {}
+                d[itemlist[i]] = slist[i] + str(qlist[i][j])
+                djson = col.find(d)
+    end = time.perf_counter()
+    totaltime = end-begin
+    return totaltime
 if __name__=="__main__":
     myclient = pymongo.MongoClient('mongodb://localhost:27017/')
     mydb = myclient['yymo']
-    col = mydb["strcoll"]
+    col = mydb["traincoll"]
+    slist = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"]
+
+    qlist = np.loadtxt("query.txt")
+    testquery(qlist)
+    '''
     partfilter = {
         'name': {
             "$gte": 'a100',
@@ -92,7 +117,7 @@ if __name__=="__main__":
     itemlist = genRandom.getitemlist()
     for i in range(0, 16):
         testout(numrandom[:,i], queryNum, sparseList,itemlist[i], i)
-    '''
+    
     for i in range(0, 16):
         print(i, ":" ,queryNum*sparseList[i])
         print(testtime(numrandom[:,i], int(sparseList[i]*queryNum),i))

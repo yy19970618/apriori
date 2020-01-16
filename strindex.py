@@ -16,7 +16,7 @@ def convolution():
     inn = layers.Input(shape=(sequence_length,alpha_len,embedding_dimension,1))
     cnns = []
     for i,size in enumerate(filter_sizes):
-        conv = layers.Conv3D(filters=8, kernel_size=([size,alpha_len,embedding_dimension]),
+        conv = layers.Conv3D(filters=2, kernel_size=([size,alpha_len,embedding_dimension]),
                             strides=[size,1,1], padding='valid', activation='relu')(inn)
         #if i%2:
         pool_size =int(conv.shape[1]/100)
@@ -37,7 +37,7 @@ I will use CNN to extract data features in order to decrease paramters
 '''
 
 tf.enable_eager_execution()
-filter_sizes=[5,50]
+filter_sizes=[5,10,20,30,50]
 embedding_dimension=26
 sequence_length = 30000
 alpha_len = 7
@@ -56,25 +56,41 @@ model.compile(optimizer=keras.optimizers.Adam(),
                  loss=keras.losses.BinaryCrossentropy(),
                  metrics=['accuracy'])
 model.summary()
-
+'''
 x_test = np.loadtxt("strtest.csv", dtype=np.str,delimiter=',')
 x_test = Dataset().dataset_read(x_test,98)
 y_test = np.loadtxt("testout.csv", delimiter=',')
-strtrain = np.loadtxt("strtrain.csv", dtype=np.str,delimiter=',')
-input = Dataset().dataset_read(strtrain,1792)
+'''
+model.load_weights("./2/weight")
+test = np.loadtxt("test1.csv", dtype=np.str,delimiter=',')
+test = Dataset().dataset_read(test,8)
+y = model.predict(test)
+print(y)
+strtrain = np.loadtxt("train.csv", dtype=np.str,delimiter=',')
+input = Dataset().dataset_read(strtrain,2048)
 #input = np.fromfile("onehot.dat", dtype=np.int8, sep=",").reshape(1792, sequence_length, alpha_len, embedding_dimension)
-out = np.loadtxt("out1.csv", delimiter=',')
+out = np.loadtxt("out.csv", delimiter=',')
 output = out
-X_train,_ , y_train, _ = train_test_split(input, output, test_size=0.01)
+X_train,x_test , y_train, y_test = train_test_split(input, output, test_size=0.2)
+loss = []
+acc = []
+tloss = []
+tacc = []
+for i in range(50):
+    history = model.fit(X_train, y_train)
+    loss.append(history.history['accuracy'][0])
+    acc.append(history.history['loss'][0])
+    test_loss, test_accuracy = model.evaluate(x_test, y_test)
+    tloss.append(test_loss)
+    tacc.append(test_accuracy)
 
-history = model.fit(X_train, y_train,epochs=100,validation_split=0.2)
 model.save_weights("./2/weight")
-plt.plot(history.history['accuracy'])
-plt.plot(history.history['loss'])
-
-plt.plot(history.history['val_accuracy'])
-plt.legend(['training', 'loss','valiation'], loc='upper left')
-
+plt.plot(acc)
+plt.plot(loss)
+plt.plot(tacc)
+plt.plot(tloss)
+#plt.plot(history.history['val_accuracy'])
+plt.legend(['training', 'train loss','testing','test loss'], loc='lower right')
 plt.show()
 #model.load_weights("./2/weight")
 

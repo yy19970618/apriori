@@ -59,14 +59,11 @@ class Dataset(object):
         embedding_w = np.array(embedding_w, dtype='int8')
         return embedding_w, embedding_dic
 
-
-if __name__ == "__main__":
-
+def genstrnumpy(train, itemnum,filename):
     slist = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"]
-    train = np.loadtxt("test.csv", delimiter=',')
+    #train = np.loadtxt("train.csv", delimiter=',')
     a = train.shape[0]
     b = train.shape[1]
-    itemnum = 14
     train = train.astype(int)
     strtrain = []
     for i in np.arange(0, a, itemnum):
@@ -81,7 +78,10 @@ if __name__ == "__main__":
                     strtrain[id].append('0')
     del train
     test = pd.DataFrame(data=strtrain)
-    test.to_csv('strtest.csv')
+    test.to_csv(filename)
+
+if __name__ == "__main__":
+
     '''
     strtrain = np.loadtxt("strtrain.csv", dtype=np.str,delimiter=',')
 
